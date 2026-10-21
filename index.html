@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super Neko | Battle Arena</title>
+  <style>
+    :root{
+      --bg-1:#100b1a;
+      --bg-2:#1a1127;
+      --panel-1:rgba(27,20,38,0.94);
+      --panel-2:rgba(35,24,49,0.9);
+      --pink:#ff5fd0;
+      --pink-2:#ff8fe7;
+      --cyan:#72efff;
+      --gold:#ffd36a;
+      --green:#7ef7b1;
+      --red:#ff5b68;
+      --purple:#7d5cff;
+      --text:#f8f7ff;
+      --muted:rgba(255,255,255,0.74);
+      --shadow:rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html,body {
+      margin:0; min-height:100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255,94,212,.22), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(114,239,255,.08), transparent 30%),
+        linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      color: var(--text);
+    }
+
+    body {
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .app {
+      position:relative;
+      width:min(1200px,100%);
+      min-height:760px;
+      border-radius:28px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(19,14,27,0.95), rgba(10,8,18,0.97));
+      box-shadow: 0 34px 90px rgba(0,0,0,0.5);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:18px 26px 14px;
+      background: rgba(255,255,255,0.02);
+      border-bottom:1px solid rgba(255,255,255,0.07);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+    }
+
+    .logo{
+      width:48px; height:48px; border-radius:50%;
+      display:grid; place-items:center;
+      background: linear-gradient(135deg, var(--pink), var(--gold));
+      font-size:1.6rem;
+      color:#130d1d;
+      box-shadow: 0 8px 20px rgba(255,93,208,0.35);
+    }
+
+    .stats{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+
+    .chip{
+      border:1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:0.8rem;
+      font-weight:800;
+      letter-spacing:0.05em;
+      text-transform:uppercase;
+    }
+
+    .game{
+      display:grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      min-height:calc(760px - 90px);
+    }
+
+    .arena{
+      position:relative;
+      padding:16px 18px 12px;
+      border-right:1px solid rgba(255,255,255,0.06);
+      background:
+        radial-gradient(circle at center, rgba(114,239,255,0.07), transparent 32%),
+        linear-gradient(180deg, rgba(15,18,35,0.95), rgba(12,10,22,0.96));
+    }
+
+    .arena::before{
+      content:"";
+      position:absolute; inset:0 0 auto 0; height:42%;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+        linear-gradient(180deg, rgba(255,95,208,0.08), transparent);
+      pointer-events:none;
+    }
+
+    .health-row{
+      position:relative;
+      z-index:2;
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      padding:0 8px;
+      margin-top:8px;
+    }
+
+    .health-card{
+      flex:1;
+      max-width:270px;
+      background:rgba(8,10,18,0.42);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:18px;
+      padding:10px 12px;
+      backdrop-filter:blur(4px);
+    }
+
+    .label-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+      font-size:0.72rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.8);
+      font-weight:800;
+    }
+
+    .bar{
+      position:relative;
+      height:14px;
+      border-radius:999px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .bar-fill{
+      position:absolute;
+      left:0; top:0; bottom:0;
+      border-radius:inherit;
+      transition: width .2s ease;
+    }
+
+    .player-fill{
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      box-shadow: 0 0 18px rgba(114,239,255,0.25);
+    }
+
+    .enemy-fill{
+      background: linear-gradient(90deg, #fb7185, #ef4444);
+      box-shadow: 0 0 18px rgba(255,91,91,0.25);
+    }
+
+    .stage{
+      position:relative;
+      height:520px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+    }
+
+    .character, .enemy{
+      position:absolute;
+      bottom:52px;
+      width:190px;
+      height:210px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+    }
+
+    .character{ left:18%; }
+    .enemy{ right:18%; transform:scaleX(-1); }
+
+    .cat, .villain{
+      position:relative;
+      width:145px; height:165px;
+      border-radius:42% 42% 34% 34%;
+      overflow:visible;
+      box-shadow: inset 0 -12px 22px rgba(0,0,0,0.18);
+    }
+
+    .cat{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.26), rgba(255,255,255,0.02)),
+        linear-gradient(135deg, #f9a8d4, #f472b6 30%, #fca5a5 68%, #fb7185);
+    }
+
+    .villain{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)),
+        linear-gradient(135deg, #7c3aed, #4f46e5 30%, #0ea5e9 68%, #2563eb);
+    }
+
+    .cat::before, .villain::before{
+      content:"";
+      position:absolute;
+      width:38px; height:38px;
+      top:26px; left:22px;
+      border-radius:50%;
+      background:#fff7ed;
+      box-shadow:52px 0 0 #fff7ed;
+    }
+
+    .cat::after, .villain::after{
+      content:"";
+      position:absolute;
+      width:18px; height:18px;
+      top:40px; left:35px;
+      border-radius:50%;
+      background:#13111b;
+      box-shadow:52px 0 0 #13111b;
+    }
+
+    .ears, .ears::before{
+      position:absolute;
+      width:24px; height:30px;
+      background:var(--pink);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+
+    .ears{
+      top:-20px; left:26px;
+      box-shadow:52px 0 0 var(--pink);
+    }
+
+    .villain .ears, .villain .ears::before{
+      background:#8b5cf6;
+      box-shadow:52px 0 0 #8b5cf6;
+    }
+
+    .mask{
+      position:absolute;
+      left:0; right:0; bottom:34px;
+      height:64px;
+      background: rgba(21,15,30,0.12);
+      border-radius:50% 50% 40% 40%;
+    }
+
+    .tail{
+      position:absolute;
+      right:-52px; bottom:56px;
+      width:80px; height:18px;
+      border-radius:50%;
+      background: rgba(255,255,255,0.24);
+      transform:rotate(28deg);
+    }
+
+    .ground{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:70px;
+      background:
+        linear-gradient(180deg, rgba(85,174,126,0.12), rgba(8,12,18,0.9)),
+        linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+      border-top:1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar{
+      padding:22px 20px 18px;
+      background: rgba(14,13,22,0.72);
+    }
+
+    .card{
+      background: var(--panel-2);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:22px;
+      padding:18px 18px 16px;
+    }
+
+    .card + .card{ margin-top:18px; }
+
+    .eyebrow{
+      color:var(--gold);
+      font-size:0.72rem;
+      letter-spacing:0.15em;
+      text-transform:uppercase;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      font-size: clamp(1.5rem,2vw,2.3rem);
+      line-height:1.1;
+    }
+
+    .card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:0.96rem;
+    }
+
+    .status-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-top:18px;
+    }
+
+    .level-box{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      background: rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width:120px;
+    }
+
+    .gem{
+      width:14px; height:14px;
+      border-radius:50%;
+      background: linear-gradient(135deg, var(--gold), #f59e0b);
+      box-shadow: 0 0 18px rgba(255,209,102,0.6);
+    }
+
+    .level-box small{
+      display:block;
+      color:rgba(255,255,255,0.6);
+      font-size:0.7rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+    }
+
+    .level-box strong{
+      display:block;
+      margin-top:2px;
+      font-size:1.1rem;
+    }
+
+    .status-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(126,247,177,0.18);
+      background: rgba(126,247,177,0.08);
+      color:var(--green);
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      font-size:0.72rem;
+      font-weight:900;
+    }
+
+    .status-badge.victory{
+      color:var(--gold);
+      border-color:rgba(255,209,102,0.25);
+      background: rgba(255,209,102,0.08);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(120px, 1fr));
+      gap:12px;
+      margin-top:22px;
+    }
+
+    .primary-btn, .secondary-btn, .twitter-btn {
+      border:none;
+      border-radius:14px;
+      padding:14px 16px;
+      font-weight:900;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      transition: transform .16s ease, opacity .16s ease;
+    }
+
+    .primary-btn:hover, .secondary-btn:hover, .twitter-btn:hover{
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:disabled, .secondary-btn:disabled{
+      opacity:0.5;
+      cursor:not-allowed;
+    }
+
+    .primary-btn{
+      background: linear-gradient(135deg, var(--pink), var(--pink-2));
+      color:#1d1127;
+      box-shadow:0 10px 24px rgba(255,93,208,0.3);
+    }
+
+    .secondary-btn{
+      background: linear-gradient(135deg, var(--cyan), #8fe9ff);
+      box-shadow:0 10px 24px rgba(110,231,255,0.22);
+      color:#0d1226;
+    }
+
+    .twitter-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(135deg, var(--gold), #f9a8d4);
+      color:#1d1127;
+      box-shadow:0 12px 28px rgba(255,209,102,0.2);
+    }
+
+    .life-meter{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:20px;
+      padding-top:10px;
+      border-top:1px solid rgba(255,255,255,0.08);
+      color:rgba(255,255,255,0.85);
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      font-size:0.8rem;
+      font-weight:800;
+    }
+
+    .log{
+      margin-top:12px;
+      min-height:200px;
+      background: rgba(7,10,18,0.4);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px;
+      padding:12px 14px;
+    }
+
+    .log-item{
+      padding:8px 0;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      color:rgba(255,255,255,0.8);
+      font-size:0.92rem;
+      line-height:1.5;
+    }
+
+    .log-item:last-child{ border-bottom:none; }
+
+    .gate{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(10,8,16,0.72);
+      backdrop-filter: blur(10px);
+      z-index:100;
+    }
+
+    .modal{
+      width:min(600px, calc(100% - 24px));
+      background: linear-gradient(180deg, rgba(22,17,32,0.96), rgba(11,11,18,0.96));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:28px;
+      padding:28px 24px 22px;
+      box-shadow:0 28px 70px rgba(0,0,0,0.48);
+    }
+
+    .modal h1{
+      margin:0 0 12px;
+      font-size: clamp(2rem,4vw,3rem);
+      line-height:1.08;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+    }
+
+    .modal p{
+      margin:0;
+      color:var(--muted);
+      font-size:1.08rem;
+      line-height:1.7;
+    }
+
+    .modal-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:22px;
+    }
+
+    @media (max-width: 860px){
+      .game{
+        grid-template-columns:1fr;
+      }
+      .arena{
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,0.06);
+      }
+      .topbar{
+        flex-wrap:wrap;
+        gap:12px;
+      }
+      .health-row{
+        gap:12px;
+        flex-wrap:wrap;
+      }
+      .health-card{
+        max-width:none; width:100%;
+      }
+      .stage{
+        height:430px;
+      }
+      .character{ left:8%; }
+      .enemy{ right:8%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div id="gate" class="gate">
+      <div class="modal">
+        <div class="eyebrow">Acceso restringido</div>
+        <h1>Super Neko necesita apoyo</h1>
+        <p>
+          Para entrar a la arena y derrotar al villano, debes seguir a
+          <strong id="handle">@SuperNekoCoin</strong> en X/Twitter.
+        </p>
+
+        <div class="modal-actions">
+          <a id="twitterLink" class="twitter-btn" href="#" target="_blank" rel="noreferrer">
+            Seguir en X
+          </a>
+          <button id="unlockBtn" class="primary-btn" type="button">He seguido</button>
+        </div>
+      </div>
+    </div>
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">N</div>
+        <span>Super Neko</span>
+      </div>
+
+      <div class="stats">
+        <div class="chip">Nivel <span id="levelValue">1</span></div>
+        <div class="chip">XP <span id="xpValue">0</span></div>
+        <div class="chip"><span id="cityValue">Shibuya</span></div>
+      </div>
+    </header>
+
+    <section class="game">
+      <div class="arena">
+        <div class="health-row">
+          <div class="health-card">
+            <div class="label-row">
+              <span>Super Neko</span>
+              <span id="playerHpText">100 / 100</span>
+            </div>
+            <div class="bar">
+              <div id="playerFill" class="bar-fill player-fill" style="width:100%"></div>
+            </div>
+          </div>
+
+          <div class="health-card">
+            <div class="label-row">
+              <span id="enemyName">Dr. Byte</span>
+              <span id="enemyHpText">100 / 100</span>
+            </div>
+            <div class="bar">
+              <div id="enemyFill" class="bar-fill enemy-fill" style="width:100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="character">
+            <div class="cat">
+              <div class="ears"></div>
+              <div class="mask"></div>
+              <div class="tail"></div>
+            </div>
+          </div>
+
+          <div class="enemy">
+            <div class="villain">
+              <div class="ears"></div>
+              <div class="mask"></div>
+              <div class="tail"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ground"></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <div class="eyebrow">Reto del día</div>
+          <h2 id="bossTitle">Boss: Dr. Byte</h2>
+          <p id="bossText">
+            Ha robado el codex lunar y está corrompiendo la red del barrio. ¡Derrota a Dr. Byte para avanzar!
+          </p>
+
+          <div class="status-row">
+            <div class="level-box">
+              <span class="gem"></span>
+              <div>
+                <small>Nivel</small>
+                <strong id="levelBadge">1</strong>
+              </div>
+            </div>
+
+            <span id="statusBadge" class="status-badge">Listo</span>
+          </div>
+
+          <div class="actions">
+            <button id="attackBtn" class="primary-btn" type="button">Atacar</button>
+            <button id="healBtn" class="secondary-btn" type="button">Curar</button>
+          </div>
+
+          <div class="life-meter">
+            <span>Vida</span>
+            <strong id="playerStatusText">100%</strong>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">Log de batalla</div>
+          <div id="battleLog" class="log"></div>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <script>
+    const TWITTER_HANDLE = "@SuperNekoCoin";
+    const TWITTER_URL = "https://x.com/SuperNekoCoin";
+    const LOCAL_KEY = "super-neko-unlocked";
+    const MAX_HP = 100;
+
+    const bosses = [
+      {
+        name: "Dr. Byte",
+        city: "Shibuya",
+        phrase: "Ha robado el codex lunar y está corrompiendo la red del barrio. ¡Derrota a Dr. Byte para avanzar!"
+      },
+      {
+        name: "Magma Meow",
+        city: "Tokyo Central",
+        phrase: "Un jefe de fuego quiere apagar la energía de la ciudad. ¡No dejes que arrase con todo!"
+      },
+      {
+        name: "Lord Purr",
+        city: "Neo Tokyo",
+        phrase: "El villano de sombras intenta controlar la luna digital. ¡Hazlo caer antes de que sea tarde!"
+      },
+      {
+        name: "Chaos Neko",
+        city: "Sky District",
+        phrase: "La corrupción del cielo está creciendo. Este es el último desafío antes del final."
+      },
+      {
+        name: "King Byte",
+        city: "Luna City",
+        phrase: "Es el poder final. El último boss ha reunido el caos de toda la ciudad. ¡Aquí termina la batalla!"
+      }
+    ];
+
+    const state = {
+      unlocked: localStorage.getItem(LOCAL_KEY) === "true",
+      level: 1,
+      xp: 0,
+      playerHp: MAX_HP,
+      enemyHp: 100,
+      maxEnemyHp: 100,
+      victory: false
+    };
+
+    const gate = document.getElementById("gate");
+    const handle = document.getElementById("handle");
+    const twitterLink = document.getElementById("twitterLink");
+    const unlockBtn = document.getElementById("unlockBtn");
+    const levelValue = document.getElementById("levelValue");
+    const xpValue = document.getElementById("xpValue");
+    const cityValue = document.getElementById("cityValue");
+    const bossTitle = document.getElementById("bossTitle");
+    const bossText = document.getElementById("bossText");
+    const enemyName = document.getElementById("enemyName");
+    const enemyHpText = document.getElementById("enemyHpText");
+    const playerHpText = document.getElementById("playerHpText");
+    const playerFill = document.getElementById("playerFill");
+    const enemyFill = document.getElementById("enemyFill");
+    const levelBadge = document.getElementById("levelBadge");
+    const statusBadge = document.getElementById("statusBadge");
+    const playerStatusText = document.getElementById("playerStatusText");
+    const battleLog = document.getElementById("battleLog");
+    const attackBtn = document.getElementById("attackBtn");
+    const healBtn = document.getElementById("healBtn");
+
+    handle.textContent = TWITTER_HANDLE;
+    twitterLink.href = TWITTER_URL;
+
+    function clamp(v, min, max) {
+      return Math.min(Math.max(v, min), max);
+    }
+
+    function currentBoss() {
+      return bosses[Math.min(state.level - 1, bosses.length - 1)];
+    }
+
+    function addLog(message) {
+      const item = document.createElement("div");
+      item.className = "log-item";
+      item.textContent = message;
+      battleLog.prepend(item);
+    }
+
+    function render() {
+      const boss = currentBoss();
+
+      levelValue.textContent = state.level;
+      xpValue.textContent = state.xp;
+      cityValue.textContent = boss.city;
+      bossTitle.textContent = `Boss: ${boss.name}`;
+      bossText.textContent = boss.phrase;
+      levelBadge.textContent = state.level;
+      enemyName.textContent = boss.name;
+
+      state.maxEnemyHp = 100 + (state.level - 1) * 25;
+
+      const playerPct = clamp((state.playerHp / MAX_HP) * 100, 0, 100);
+      const enemyPct = clamp((state.enemyHp / state.maxEnemyHp) * 100, 0, 100);
+
+      playerHpText.textContent = `${state.playerHp} / ${MAX_HP}`;
+      enemyHpText.textContent = `${state.enemyHp} / ${state.maxEnemyHp}`;
+      playerFill.style.width = `${playerPct}%`;
+      enemyFill.style.width = `${enemyPct}%`;
+      playerStatusText.textContent = `${Math.round(playerPct)}%`;
+
+      if (state.victory) {
+        statusBadge.textContent = "Victoria";
+        statusBadge.classList.add("victory");
+      } else {
+        statusBadge.textContent = "Listo";
+        statusBadge.classList.remove("victory");
+      }
+    }
+
+    function unlockGame() {
+      state.unlocked = true;
+      localStorage.setItem(LOCAL_KEY, "true");
+      gate.style.display = "none";
+      addLog(`Acceso desbloqueado. Ya puedes jugar y seguir a ${TWITTER_HANDLE}.`);
+      render();
+    }
+
+    function startBoss(level) {
+      state.level = level;
+      state.maxEnemyHp = 100 + (level - 1) * 25;
+      state.enemyHp = state.maxEnemyHp;
+      render();
+    }
+
+    function handleAttack() {
+      if (!state.unlocked || state.victory) return;
+
+      const boss = currentBoss();
+      const damage = 12 + Math.floor(Math.random() * 18);
+      const counter = 8 + Math.floor(Math.random() * 12);
+
+      state.enemyHp = Math.max(0, state.enemyHp - damage);
+      state.playerHp = Math.max(0, state.playerHp - counter);
+
+      addLog(`¡Super Neko golpea por ${damage}! ${boss.name} devuelve ${counter} de daño.`);
+
+      if (state.enemyHp <= 0) {
+        state.xp += 100;
+
+        if (state.level < bosses.length) {
+          addLog(`${boss.name} ha sido derrotado. ¡Subes al nivel ${state.level + 1}!`);
+          state.level += 1;
+          state.playerHp = MAX_HP;
+          state.enemyHp = 100 + (state.level - 1) * 25;
+          state.maxEnemyHp = state.enemyHp;
+        } else {
+          state.victory = true;
+          attackBtn.disabled = true;
+          healBtn.disabled = true;
+          addLog("¡Victoria total! La ciudad está salva y Super Neko ha vencido a todos los villanos.");
+        }
+      }
+
+      if (state.playerHp <= 0) {
+        state.playerHp = MAX_HP;
+        addLog("Super Neko cae, pero vuelve al combate con fuerza renovada.");
+      }
+
+      render();
+    }
+
+    function handleHeal() {
+      if (!state.unlocked || state.victory) return;
+
+      const heal = 18 + Math.floor(Math.random() * 16);
+      const counter = 8 + Math.floor(Math.random() * 12);
+
+      const afterHeal = clamp(state.playerHp + heal, 0, MAX_HP);
+      const afterHit = clamp(afterHeal - counter, 0, MAX_HP);
+
+      state.playerHp = afterHit;
+
+      addLog(`Super Neko usa energía lunar: +${heal}. El enemigo responde con ${counter}.`);
+
+      if (state.playerHp <= 0) {
+        state.playerHp = MAX_HP;
+        addLog("Poder regenerativo activado. Super Neko recobra toda su energía.");
+      }
+
+      render();
+    }
+
+    unlockBtn.addEventListener("click", unlockGame);
+    attackBtn.addEventListener("click", handleAttack);
+    healBtn.addEventListener("click", handleHeal);
+
+    if (!state.unlocked) {
+      gate.style.display = "flex";
+    } else {
+      gate.style.display = "none";
+    }
+
+    startBoss(1);
+    render();
+    addLog("Super Neko está listo para entrar a la arena.");
+  </script>
+</body>
+</html>
