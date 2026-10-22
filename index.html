@@ -76,7 +76,7 @@
        target="_blank" rel="noopener noreferrer">
       𝕏 &nbsp; Follow @Super_Neko0
     </a>
-    <a class="button primary" href="/api/auth/">
+    <a class="button primary" href="#" onclick="startAuth()"
       Sign in with X
     </a>
     <button class="dark" id="verifyBtn" type="button">
@@ -116,7 +116,12 @@
   const walletInput = document.getElementById("wallet");
   const registerBtn = document.getElementById("registerBtn");
   const registerStatus = document.getElementById("registerStatus");
-
+async function startAuth() {
+  const verifier = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+  localStorage.setItem('twitter_code_verifier', verifier);
+  window.location.href = `/api/auth/?code_challenge=${verifier}`;
+  }
+  
   let followVerified = false;
 
   async function postJSON(url, body) {
