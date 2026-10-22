@@ -115,13 +115,11 @@
   const walletForm = document.getElementById("walletForm");
   const walletInput = document.getElementById("wallet");
   const registerBtn = document.getElementById("registerBtn");
-  const registerStatus = document.getElementById("registerStatus");
-async function startAuth() {
+  async function startAuth() {
   const verifier = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
   localStorage.setItem('twitter_code_verifier', verifier);
   window.location.href = `/api/auth/?code_challenge=${verifier}`;
   }
-  
   let followVerified = false;
 
   async function postJSON(url, body) {
