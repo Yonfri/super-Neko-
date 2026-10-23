@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   });
 
   const tokenData = await tokenResponse.json();
-
+console.log(tokenData);
   if (tokenData.access_token) {
     res.status(200).json({ message: 'Authentication successful', token: tokenData.access_token });
   } else {
