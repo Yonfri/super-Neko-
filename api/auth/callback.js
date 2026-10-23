@@ -1,4 +1,5 @@
-export default async function handler(req, res) {
+export default async function handler(req, res) { 
+  const codeVerifier = req .cookies.code_verifier;
   const { code, state } = req.query;
   const CLIENT_ID = process.env.CLIENT_ID;
   const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
       grant_type: 'authorization_code',
       client_id: CLIENT_ID,
       redirect_uri: redirect_uri,
-      code_verifier: 'challenge',
+      code_verifier: codeVerifier,
     }),
   });
 
