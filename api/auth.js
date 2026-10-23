@@ -1,10 +1,9 @@
 import crypto from 'node:crypto';
+  const CLIENT_ID = process.env.CLIENT_ID;
 const codeVerifier = crypto.randomUUID();\
 const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
 res.setHeader('Set-Cookie', 'code_verifier=' + codeVerifier + '; HttpOnly; Path=/; Max-Age=600; SameSite=Lax');
-
 export default function handler(req, res) {
-  const CLIENT_ID = process.env.CLIENT_ID;
   const redirect_uri = 'https://super-neko.vercel.app/api/auth/callback';
   const scope = 'tweet.read users.read';
   const state = 'state';
